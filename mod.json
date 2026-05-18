@@ -23,6 +23,20 @@
             "description": "Permite dar likes infinitos a comentarios.",
             "type": "bool",
             "default": true
+	    },
+        "enable-custom-percent": {
+            "name": "Activar Porcentaje Falso",
+            "description": "Adjunta un porcentaje falso al publicar un comentario.",
+            "type": "bool",
+            "default": false
+        },
+        "custom-percent-value": {
+            "name": "Porcentaje a mostrar",
+            "description": "El número de porcentaje (0 a 100) que se enviará.",
+            "type": "int",
+            "default": 100,
+            "min": 0,
+            "max": 100
 		}
 	}
 }
