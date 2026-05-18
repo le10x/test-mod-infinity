@@ -1,24 +1,24 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/LikeItemLayer.hpp>
+#include <Geode/modify/GameStatsManager.hpp>
 
 using namespace geode::prelude;
 
-class $modify(MyLikeItemLayer, LikeItemLayer) {
-    // Interceptamos el método nativo que se ejecuta al presionar el botón físico de Like en la interfaz
-    void onLike(cocos2d::CCObject* sender) {
+// Modificamos directamente el gestor de estadísticas del juego
+class $modify(MyGameStatsManager, GameStatsManager) {
+    
+    // Interceptamos la función que comprueba si ya diste like a un elemento
+    bool hasLikedItem(LikeItemType type, int id, bool extra) {
         
-        // Verificamos si la configuración de likes infinitos está habilitada
+        // Verificamos si nuestro interruptor en mod.json está encendido
         bool isEnabled = Mod::get()->getSettingValue<bool>("enable-likes");
 
         if (isEnabled) {
-            // Ejecutamos triggerLike directamente de forma infinita.
-            // Al llamarlo directamente saltándonos la comprobación nativa del botón de 'onLike',
-            // enviamos el paquete HTTP al servidor sin que el juego desactive el botón localmente.
-            this->triggerLike(true);
-            return;
+            // Engañamos al juego devolviendo SIEMPRE false.
+            // Para el juego, tú NUNCA le has dado like a este comentario.
+            return false;
         }
 
-        // Si el mod está desactivado, dejamos que el juego actúe de manera normal
-        LikeItemLayer::onLike(sender);
+        // Si el mod está apagado, se comporta de forma normal
+        return GameStatsManager::hasLikedItem(type, id, extra);
     }
 };
