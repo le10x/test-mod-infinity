@@ -32,11 +32,11 @@
         },
         "custom-percent-value": {
             "name": "Porcentaje a mostrar",
-            "description": "El número de porcentaje (0 a 100) que se enviará.",
+            "description": "El número de porcentaje (0 a 999) que se enviará.",
             "type": "int",
             "default": 100,
             "min": 0,
-            "max": 100
+            "max": 999
 		}
 	}
 }
