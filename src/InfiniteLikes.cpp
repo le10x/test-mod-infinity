@@ -3,22 +3,19 @@
 
 using namespace geode::prelude;
 
-// Modificamos directamente el gestor de estadísticas del juego
 class $modify(MyGameStatsManager, GameStatsManager) {
     
-    // Interceptamos la función que comprueba si ya diste like a un elemento
     bool hasLikedItem(LikeItemType type, int id, bool extra) {
         
         // Verificamos si nuestro interruptor en mod.json está encendido
         bool isEnabled = Mod::get()->getSettingValue<bool>("enable-likes");
 
         if (isEnabled) {
-            // Engañamos al juego devolviendo SIEMPRE false.
-            // Para el juego, tú NUNCA le has dado like a este comentario.
+            // Engañamos al juego devolviendo siempre false para que crea que nunca has votado por el elemento
             return false;
         }
 
-        // Si el mod está apagado, se comporta de forma normal
-        return GameStatsManager::hasLikedItem(type, id, extra);
+        // Usamos std::move(original) para llamar de forma segura al comportamiento base de Geode
+        return std::move(original)(type, id, extra);
     }
 };
