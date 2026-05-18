@@ -13,6 +13,7 @@ project(Infinity VERSION 1.0.0)
 add_library(${PROJECT_NAME} SHARED
     src/InfiniteText.cpp
     src/InfiniteLikes.cpp
+    src/CustomPercent.cpp
     # Add any extra C++ source files here
 )
 
