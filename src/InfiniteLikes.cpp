@@ -1,21 +1,22 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/GameStatsManager.hpp>
+#include <Geode/modify/LikeItemLayer.hpp>
 
 using namespace geode::prelude;
 
-class $modify(MyGameStatsManager, GameStatsManager) {
-    
-    bool hasLikedItem(LikeItemType type, int id, bool extra) {
+class $modify(MyLikeItemLayer, LikeItemLayer) {
+    // Interceptamos la inicialización del recuadro de Likes
+    bool init(LikeItemType type, int id, bool extra) {
         
-        // Verificamos si nuestro interruptor en mod.json está encendido
+        // Verificamos si el interruptor 'enable-likes' está encendido en mod.json
         bool isEnabled = Mod::get()->getSettingValue<bool>("enable-likes");
 
         if (isEnabled) {
-            // Engañamos al juego devolviendo siempre false para que crea que nunca has votado por el elemento
-            return false;
+            // Engañamos al juego forzando que 'extra' (que controla si ya diste voto) sea siempre false.
+            // Esto desbloquea el botón e impide que el juego sepa que ya habías votado.
+            extra = false;
         }
 
-        // Usamos std::move(original) para llamar de forma segura al comportamiento base de Geode
-        return std::move(original)(type, id, extra);
+        // Llamamos al inicializador original usando la sintaxis clásica de Geode
+        return LikeItemLayer::init(type, id, extra);
     }
 };
