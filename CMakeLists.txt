@@ -12,7 +12,7 @@ project(Infinity VERSION 1.0.0)
 
 add_library(${PROJECT_NAME} SHARED
     src/InfiniteText.cpp
-    src/CustomPercent.cpp
+    src/CommentRight.cpp
     # Add any extra C++ source files here
 )
 
