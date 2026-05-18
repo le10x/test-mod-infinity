@@ -11,32 +11,5 @@
 	"name": "Infinity",
 	"developer": "le10x",
 	"description": "xD.",
-	"settings": {
-        "enable-text": {
-            "name": "Comentarios Infinitos",
-            "description": "Permite escribir más allá del límite en los comentarios.",
-            "type": "bool",
-            "default": true
-        },
-        "enable-likes": {
-            "name": "Likes Infinitos",
-            "description": "Permite dar likes infinitos a comentarios.",
-            "type": "bool",
-            "default": true
-	    },
-        "enable-custom-percent": {
-            "name": "Activar Porcentaje Falso",
-            "description": "Adjunta un porcentaje falso al publicar un comentario.",
-            "type": "bool",
-            "default": false
-        },
-        "custom-percent-value": {
-            "name": "Porcentaje a mostrar",
-            "description": "El número de porcentaje (0 a 999) que se enviará.",
-            "type": "int",
-            "default": 100,
-            "min": 0,
-            "max": 999
-		}
-	}
+	"settings": {}
 }
