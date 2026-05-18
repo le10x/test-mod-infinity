@@ -1,22 +1,19 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/GLMManager.hpp>
+#include <Geode/modify/GameLevelManager.hpp>
 
 using namespace geode::prelude;
 
-class $modify(MyGLMManager, GLMManager) {
-    // Interceptamos la función nativa que empaqueta y envía el comentario al servidor
+class $modify(MyGameLevelManager, GameLevelManager) {
     void uploadComment(std::string comment, CommentKeyType keyType, int levelID, int percent) {
         
-        // Leemos las configuraciones desde el mod.json
         bool isEnabled = Mod::get()->getSettingValue<bool>("enable-custom-percent");
         int fakePercent = Mod::get()->getSettingValue<int>("custom-percent-value");
 
         if (isEnabled) {
-            // Reemplazamos el porcentaje real del nivel por nuestro número personalizado
+            // Aquí se asignará el valor falso (incluso si es 999)
             percent = fakePercent;
         }
 
-        // Llamamos a la función original usando la sintaxis clásica compatible con tu compilador
-        GLMManager::uploadComment(comment, keyType, levelID, percent);
+        GameLevelManager::uploadComment(comment, keyType, levelID, percent);
     }
 };
