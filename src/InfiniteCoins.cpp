@@ -1,22 +1,18 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/GameObject.hpp>
+#include <Geode/modify/ObjectManager.hpp>
 
 using namespace geode::prelude;
 
-class $modify(GameObject) {
-    // Interceptamos la creación del objeto mediante su ID clave
-    static GameObject* createWithKey(int objectID) {
-        // Llamamos a la creación normal del objeto
-        auto obj = GameObject::createWithKey(objectID);
-        
-        // Si el objeto creado es una User Coin (1329) y se creó correctamente
-        if (obj && objectID == 1329) {
-            // Modificamos su propiedad de tipo de objeto en el editor.
-            // Al cambiar temporalmente su tipo interno de 'UserCoin' a un tipo genérico o interactivo común,
-            // el motor del editor deja de rastrearlo en su lista de "objetos límite" ignorando el contador.
-            obj->m_objectType = GameObjectType::Decoration; 
+class $modify(ObjectManager) {
+    // Interceptamos la función que le dice al juego si un ID tiene límites estrictos de cantidad
+    bool isPersistentObject(int objectID) {
+        // En Geometry Dash, las monedas y los Start Pos son "Persistent" o aislados.
+        // Si el juego pregunta si la User Coin (1329) es un objeto restringido, le decimos que NO.
+        if (objectID == 1329) {
+            return false; 
         }
-        
-        return obj;
+
+        // Para cualquier otro objeto, dejamos que el juego use sus límites nativos
+        return ObjectManager::isPersistentObject(objectID);
     }
 };
