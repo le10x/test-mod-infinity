@@ -1,27 +1,29 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/LevelEditorLayer.hpp>
 #include <Geode/modify/EditorUI.hpp>
 
 using namespace geode::prelude;
 
 class $modify(EditorUI) {
-    bool canPlaceObject(int objectID) {
-        // Filtrar estrictamente por el ID 1329 (User Coin)
-        if (objectID == 1329) {
-            // Obtenemos la instancia activa del editor
-            if (auto editorLoop = LevelEditorLayer::get()) {
-                // El tipo 2 corresponde a las User Coins en Geometry Dash
-                int currentCoins = editorLoop->getCoinCount(2);
-                
-                // Rompemos el límite permitiendo hasta 99 monedas plateadas
-                if (currentCoins < 99) {
-                    return true; 
+    // Interceptamos la función que valida si se puede construir el objeto de un botón
+    bool canBuildObjectForButton(EditButton* button) {
+        // Validamos que el botón exista y tenga un objeto asignado
+        if (button && button->getObjID() == 1329) {
+            
+            // Obtenemos el total de User Coins directamente desde la variable del nivel actual
+            if (auto levelEditor = LevelEditorLayer::get()) {
+                if (auto level = levelEditor->m_level) {
+                    // m_coins es la variable nativa de GD que almacena cuántas monedas tiene el nivel
+                    int currentCoins = level->m_coins;
+                    
+                    // Si tienes menos de 99, te deja colocarla directamente
+                    if (currentCoins < 99) {
+                        return true;
+                    }
                 }
             }
         }
         
-        // Si es cualquier otro objeto (incluyendo la Secret Coin 142), 
-        // se ejecuta la validación original del juego.
-        return EditorUI::canPlaceObject(objectID);
+        // Si no es una User Coin (1329), ejecuta la lógica por defecto del juego
+        return EditorUI::canBuildObjectForButton(button);
     }
 };
