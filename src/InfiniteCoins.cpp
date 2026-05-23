@@ -4,18 +4,19 @@
 using namespace geode::prelude;
 
 class $modify(GameObject) {
-    // Interceptamos la inicialización de cualquier objeto que se crea en el juego
-    bool init(int objectID) {
-        // Primero dejamos que el objeto se inicialice de forma completamente normal
-        if (!GameObject::init(objectID)) return false;
-
-        // Si el objeto que se está creando es una User Coin (1329)
-        if (objectID == 1329) {
-            // Desactivamos la propiedad interna que le dice al juego 
-            // "soy un objeto con límite estricto de cantidad en el editor"
-            this->m_isIsolate = false; 
+    // Interceptamos la creación del objeto mediante su ID clave
+    static GameObject* createWithKey(int objectID) {
+        // Llamamos a la creación normal del objeto
+        auto obj = GameObject::createWithKey(objectID);
+        
+        // Si el objeto creado es una User Coin (1329) y se creó correctamente
+        if (obj && objectID == 1329) {
+            // Modificamos su propiedad de tipo de objeto en el editor.
+            // Al cambiar temporalmente su tipo interno de 'UserCoin' a un tipo genérico o interactivo común,
+            // el motor del editor deja de rastrearlo en su lista de "objetos límite" ignorando el contador.
+            obj->m_objectType = GameObjectType::Decoration; 
         }
-
-        return true;
+        
+        return obj;
     }
 };
