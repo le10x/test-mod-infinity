@@ -1,17 +1,21 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/LevelEditorLayer.hpp>
+#include <Geode/modify/GameObject.hpp>
 
 using namespace geode::prelude;
 
-class $modify(LevelEditorLayer) {
-    // Interceptamos la validación lógica de colocación de objetos en el mapa
-    bool canPlaceObject(GameObject* object) {
-        // Si el juego está verificando una User Coin, saltamos la comprobación del contador
-        if (object && object->m_objectID == 1329) {
-            return true; // Le aseguramos al motor que siempre es válido colocarla
+class $modify(GameObject) {
+    // Interceptamos la inicialización de cualquier objeto que se crea en el juego
+    bool init(int objectID) {
+        // Primero dejamos que el objeto se inicialice de forma completamente normal
+        if (!GameObject::init(objectID)) return false;
+
+        // Si el objeto que se está creando es una User Coin (1329)
+        if (objectID == 1329) {
+            // Desactivamos la propiedad interna que le dice al juego 
+            // "soy un objeto con límite estricto de cantidad en el editor"
+            this->m_isIsolate = false; 
         }
-        
-        // Para cualquier otro objeto, dejamos que el juego use sus reglas normales
-        return LevelEditorLayer::canPlaceObject(object);
+
+        return true;
     }
 };
