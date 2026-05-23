@@ -1,17 +1,27 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/LevelEditorLayer.hpp>
+#include <Geode/modify/EditorUI.hpp>
 
 using namespace geode::prelude;
 
-// Hookeamos la clase del Editor de Niveles
-class $modify(LevelEditorLayer) {
-
-    // Modificamos la función encargada de contar las monedas puestas
-    int getCoinCount(int coinType) {
-        // coinType identifica si es Secret Coin (moneda dorada) o User Coin (moneda plateada)
+class $modify(EditorUI) {
+    bool canPlaceObject(int objectID) {
+        // Filtrar estrictamente por el ID 1329 (User Coin)
+        if (objectID == 1329) {
+            // Obtenemos la instancia activa del editor
+            if (auto editorLoop = LevelEditorLayer::get()) {
+                // El tipo 2 corresponde a las User Coins en Geometry Dash
+                int currentCoins = editorLoop->getCoinCount(2);
+                
+                // Rompemos el límite permitiendo hasta 99 monedas plateadas
+                if (currentCoins < 99) {
+                    return true; 
+                }
+            }
+        }
         
-        // Al retornar siempre 0, el editor "piensa" que no has colocado ninguna moneda,
-        // permitiéndote colocar tantas monedas como desees de forma infinita.
-        return 0; 
+        // Si es cualquier otro objeto (incluyendo la Secret Coin 142), 
+        // se ejecuta la validación original del juego.
+        return EditorUI::canPlaceObject(objectID);
     }
 };
