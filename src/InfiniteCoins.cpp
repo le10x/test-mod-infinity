@@ -4,26 +4,20 @@
 using namespace geode::prelude;
 
 class $modify(EditorUI) {
-    // Interceptamos la función que valida si se puede construir el objeto de un botón
-    bool canBuildObjectForButton(EditButton* button) {
-        // Validamos que el botón exista y tenga un objeto asignado
-        if (button && button->getObjID() == 1329) {
+    void onCreateButton(cocos2d::CCObject* sender) {
+        auto item = typeinfo_cast<CreateMenuItem*>(sender);
+        auto ed = LevelEditorLayer::get();
+
+        if (item && item->m_objectID == 1329 && ed && ed->m_level) {
+            int originalCoins = ed->m_level->m_coins;
             
-            // Obtenemos el total de User Coins directamente desde la variable del nivel actual
-            if (auto levelEditor = LevelEditorLayer::get()) {
-                if (auto level = levelEditor->m_level) {
-                    // m_coins es la variable nativa de GD que almacena cuántas monedas tiene el nivel
-                    int currentCoins = level->m_coins;
-                    
-                    // Si tienes menos de 99, te deja colocarla directamente
-                    if (currentCoins < 99) {
-                        return true;
-                    }
-                }
-            }
+            // Bypass temporal: simula 0 monedas si hay menos de 99
+            if (originalCoins < 99) ed->m_level->m_coins = 0;
+            
+            EditorUI::onCreateButton(sender);
+            ed->m_level->m_coins = originalCoins;
+            return;
         }
-        
-        // Si no es una User Coin (1329), ejecuta la lógica por defecto del juego
-        return EditorUI::canBuildObjectForButton(button);
+        EditorUI::onCreateButton(sender);
     }
 };
