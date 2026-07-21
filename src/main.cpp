@@ -1,73 +1,41 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/LeaderboardsLayer.hpp>
+#include <Geode/modify/UploadCommentPopup.hpp>
+#include <string>
 
 using namespace geode::prelude;
 
-class $modify(MyLeaderboardLayer, LeaderboardsLayer) {
-    
-    struct Fields {
-        bool m_isPlatformer = false;
-    };
+class $modify(MyPercentMod, UploadCommentPopup) {
+    void onPost(CCObject* sender) {
+        std::string commentText = m_inputField->getString();
 
-    // Ajustado a los dos argumentos reales definidos en Geode: type y stat
-    bool init(LeaderboardType type, LeaderboardStat stat) {
-        if (!LeaderboardsLayer::init(type, stat)) return false;
+        // 1. Buscamos el comando "!percent " en cualquier parte del texto
+        size_t commandPos = commentText.find("!percent ");
+        
+        if (commandPos != std::string::npos) {
+            try {
+                // Extraemos el número que va justo después del comando
+                std::string numStr = commentText.substr(commandPos + 9, 3); // Lee hasta 3 dígitos
+                int customPercent = std::stoi(numStr);
 
-        CCMenu* sideMenu = nullptr;
-
-        // Búsqueda manual usando typeinfo_cast (el estándar correcto en Geode 5.x)
-        auto children = this->getChildren();
-        if (children) {
-            for (int i = 0; i < children->count(); ++i) {
-                auto child = typeinfo_cast<CCMenu*>(children->objectAtIndex(i));
-                if (child) {
-                    // Verificación física de posición en pantalla (menú derecho)
-                    if (child->getPositionX() > 200.0f) { 
-                        sideMenu = child;
-                        break;
-                    }
+                if (customPercent >= 0 && customPercent <= 100) {
+                    m_percent = customPercent;
+                    m_percentLabel->setString(fmt::format("{}%", customPercent).c_str());
+                    
+                    // Aseguramos que la casilla esté activa internamente
+                    m_isPercentEnabled = true; 
                 }
-            }
+
+                // 2. BORRAMOS EL COMANDO del texto final
+                // Esto quita "!percent XX" del mensaje para que nadie lo descubra
+                commentText.erase(commandPos, 12); // Borra el comando y el número aproximado
+                
+                // Actualizamos el cuadro con el comentario limpio antes de enviar
+                m_inputField->setString(commentText.c_str());
+
+            } catch (...) {}
         }
 
-        // Si falla la búsqueda, crea un menú de respaldo
-        if (!sideMenu) {
-            sideMenu = CCMenu::create();
-            sideMenu->setPosition({ CCDirector::sharedDirector()->getWinSize().width - 40.0f, 150.0f });
-            this->addChild(sideMenu);
-        }
-
-        // Crear la apariencia e interactividad del botón
-        auto buttonSprite = ButtonSprite::create("Classic", "goldFont.fnt", "GJ_button_01.png", 0.5f);
-        
-        auto toggleBtn = CCMenuItemSpriteExtra::create(
-            buttonSprite,
-            this,
-            menu_selector(MyLeaderboardLayer::onToggleLeaderboardMode)
-        );
-        
-        toggleBtn->setID("mode-toggle-button"_spr);
-        
-        // Adjuntar al contenedor físico de marcadores
-        sideMenu->addChild(toggleBtn);
-        sideMenu->updateLayout();
-
-        return true;
-    }
-
-    void onToggleLeaderboardMode(CCObject* sender) {
-        m_fields->m_isPlatformer = !m_fields->m_isPlatformer;
-
-        auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
-        auto spr = static_cast<ButtonSprite*>(btn->getNormalImage());
-        
-        if (m_fields->m_isPlatformer) {
-            spr->setString("Plat");
-        } else {
-            spr->setString("Classic");
-        }
-
-        // Nota: Para recargar los puntajes visuales, RobTop refresca llamando a setupLeaderboard
-        // pasando el tipo y la estadística activa de la capa.
+        // El juego envía el comentario limpio con el porcentaje ya modificado
+        UploadCommentPopup::onPost(sender);
     }
 };
