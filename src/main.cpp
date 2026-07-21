@@ -1,27 +1,28 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/LeaderboardLayer.hpp>
+// Corrección del header: se añade la 's' a LeaderboardsLayer
+#include <Geode/modify/LeaderboardsLayer.hpp>
 
 using namespace geode::prelude;
 
-class $modify(MyLeaderboardLayer, LeaderboardLayer) {
+// Corrección de la macro modificadora: se cambia LeaderboardLayer por LeaderboardsLayer
+class $modify(MyLeaderboardLayer, LeaderboardsLayer) {
     
     struct Fields {
         bool m_isPlatformer = false;
     };
 
     bool init(LeaderboardState state) {
-        if (!LeaderboardLayer::init(state)) return false;
+        if (!LeaderboardsLayer::init(state)) return false;
 
         CCMenu* sideMenu = nullptr;
 
-        // Búsqueda manual sin depender de Node IDs externos
-        // Recorremos los nodos hijos para dar con el CCMenu contenedor de botones (Top, Week, Friends)
+        // Búsqueda manual iterando por los nodos hijos del contenedor
         auto children = this->getChildren();
         if (children) {
             for (int i = 0; i < children->count(); ++i) {
                 auto child = GameObjCast<CCMenu*>(children->objectAtIndex(i));
                 if (child) {
-                    // Verificación de seguridad por coordenadas: RobTop posiciona este menú a la derecha
+                    // RobTop posiciona este menú lateral hacia la derecha en la pantalla
                     if (child->getPositionX() > 200.0f) { 
                         sideMenu = child;
                         break;
@@ -30,14 +31,14 @@ class $modify(MyLeaderboardLayer, LeaderboardLayer) {
             }
         }
 
-        // Si no se encuentra de forma segura, creamos un menú flotante alternativo
+        // Menú de respaldo en caso de no encontrarse dinámicamente
         if (!sideMenu) {
             sideMenu = CCMenu::create();
             sideMenu->setPosition({ CCDirector::sharedDirector()->getWinSize().width - 40.0f, 150.0f });
             this->addChild(sideMenu);
         }
 
-        // Crear interfaz estética del botón independiente
+        // Creación del sprite base del botón alternador
         auto buttonSprite = ButtonSprite::create("Classic", "goldFont.fnt", "GJ_button_01.png", 0.5f);
         
         auto toggleBtn = CCMenuItemSpriteExtra::create(
@@ -48,7 +49,7 @@ class $modify(MyLeaderboardLayer, LeaderboardLayer) {
         
         toggleBtn->setID("mode-toggle-button"_spr);
         
-        // Inserción en el menú físico
+        // Adjuntar e indicar el rediseño del layout
         sideMenu->addChild(toggleBtn);
         sideMenu->updateLayout();
 
@@ -67,14 +68,8 @@ class $modify(MyLeaderboardLayer, LeaderboardLayer) {
             spr->setString("Classic");
         }
 
-        // Modificación del GameManager global de RobTop en GD 2.2081
-        auto gameManager = GameManager::sharedState();
-        if (gameManager) {
-            // Nota: Este booleano define el filtrado interno del cliente antes de enviar la petición HTTP
-            // gameManager->m_isPlatformer = m_fields->m_isPlatformer;
-        }
-
-        // Forzar actualización visual limpiando y recargando la lista
+        // Espacio reservado para invocar la recarga de datos en GD 2.2081 de forma manual
+        // El método de actualización interna de RobTop suele requerir el estado actual
         // this->setupLeaderboard(m_state);
     }
 };
