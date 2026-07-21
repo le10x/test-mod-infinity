@@ -1,16 +1,15 @@
 #include <Geode/Geode.hpp>
-// Incluimos explícitamente el binding y el modify de la clase
-#include <Geode/binding/UploadCommentPopup.hpp>
-#include <Geode/modify/UploadCommentPopup.hpp>
+// Importamos los archivos maestros que contienen todas las clases de Geometry Dash
+#include <Geode/binding/Classes.hpp>
+#include <Geode/modify/Classes.hpp>
 #include <string>
 
 using namespace geode::prelude;
 
-// Usamos la macro con la estructura correcta para Geode v3+
+// Modificamos la clase usando el catálogo maestro ya cargado
 class $modify(MyPercentMod, UploadCommentPopup) {
     void onPost(CCObject* sender) {
-        // 1. Obtenemos el texto del cuadro de comentarios
-        // Usamos la variable m_commentTextInput (nombre exacto en la estructura de GD 2.2)
+        // 1. Verificamos de forma segura que el cuadro de texto exista en esta versión
         if (!m_commentTextInput) {
             UploadCommentPopup::onPost(sender);
             return;
@@ -21,25 +20,25 @@ class $modify(MyPercentMod, UploadCommentPopup) {
         // 2. Buscamos el comando "!percent " estrictamente al inicio
         if (commentText.rfind("!percent ", 0) == 0) {
             try {
+                // Extraemos el número que sigue al comando
                 int customPercent = std::stoi(commentText.substr(9));
 
                 if (customPercent >= 0 && customPercent <= 100) {
-                    // Forzamos el porcentaje interno
                     m_percent = customPercent;
                     
-                    // Modificamos el texto visual en pantalla si existe la etiqueta
+                    // Actualizamos visualmente la etiqueta del porcentaje en pantalla
                     if (m_percentLabel) {
                         m_percentLabel->setString(fmt::format("{}%", customPercent).c_str());
                     }
                 }
             } catch (...) {}
 
-            // Limpiamos el cuadro para que el comando no se envíe textualmente
+            // Limpiamos el cuadro para evitar que el comando se envíe como texto público
             m_commentTextInput->setString("");
             return; 
         }
 
-        // Si no se usa el comando, el juego procesa normalmente
+        // Si no se inicia con el comando, procesa el comentario de manera normal
         UploadCommentPopup::onPost(sender);
     }
 };
