@@ -3,19 +3,16 @@
 	"gd": {
 		"win": "2.2081",
 		"android": "2.2081",
-		"mac": "2.2081"
+		"mac": "2.2081",
+		"ios": "2.2081"
 	},
-	"id": "sheepdotcom.leaderboard_in_pause_menu",
-	"name": "Leaderboard in Pause Menu",
-	"version": "v1.0.1",
-	"developer": "sheepdotcom",
-	"description": "",
-	"links": {"source": "https://github.com"},
-	"dependencies": [
-		{
-			"id": "geode.node-ids",
-			"version": ">=1.17.0",
-			"importance": "required"
+	"id": "le10x.test_mod",
+	"version": "1.0.0",
+	"name": "Test Mod",
+	"developer": "le10x",
+	"description": "test mod",
+	"repository": "https://github.com",
+	"settings": {}
 		}
-	]
+	}
 }
