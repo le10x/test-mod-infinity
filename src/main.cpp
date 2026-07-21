@@ -1,49 +1,49 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/UploadCommentPopup.hpp>
 #include <string>
-#include <sstream>
 
 using namespace geode::prelude;
 
-class $modify(MyPercentMod, UploadCommentPopup) {
+// Engañamos al compilador haciendo el hook sobre FLAlertLayer (clase base de alertas).
+// Esto evita que busque el archivo UploadCommentPopup.hpp que no existe en Android.
+class $modify(FLAlertLayer) {
     void onPost(CCObject* sender) {
-        // 1. Buscamos el cuadro de texto escaneando la interfaz
-        auto inputField = this->findFirstChildByType<CCTextInputNode>(this);
-        if (!inputField) {
-            UploadCommentPopup::onPost(sender);
-            return;
-        }
-
-        std::string commentText = inputField->getString();
-
-        // 2. Buscamos el comando "!percent " estrictamente al inicio
-        if (commentText.rfind("!percent ", 0) == 0) {
-            try {
-                int customPercent = std::stoi(commentText.substr(9));
-                
-                if (customPercent >= 0 && customPercent <= 100) {
-                    // Forzamos el valor numérico en la variable del nivel
-                    if (this->m_level) {
-                        this->m_level->m_orbCompletion = customPercent; // O m_percentage (varía según la versión de GD)
-                    }
-
-                    // Actualizamos el texto del comentario para que contenga el %
-                    inputField->setString(fmt::format("{}%", customPercent).c_str());
-                    
-                    // Dejamos que el flujo normal envíe el comentario ahora que fue modificado
-                    UploadCommentPopup::onPost(sender);
-                    return;
-                }
-            } catch (...) {
-                // Si escriben mal el número, el mod no se rompe
-            }
+        // 1. Verificamos si la ventana actual en pantalla es el Popup de comentarios
+        if (std::string(typeid(*this).name()).find("UploadCommentPopup") != std::string::npos) {
+            // 2. Buscamos el cuadro de texto escaneando la interfaz
+            auto inputField = this->findFirstChildByType<CCTextInputNode>(this);
             
-            // Si el comando no es válido (por ejemplo, número mayor a 100), borramos el cuadro de texto
-            inputField->setString("");
-            return;
+            if (inputField) {
+                std::string commentText = inputField->getString();
+                
+                // 3. Detectamos si el usuario ingresó el comando !percent
+                if (commentText.rfind("!percent", 0) == 0) {
+                    try {
+                        int customPercent = std::stoi(commentText.substr(9));
+                        
+                        if (customPercent >= 0 && customPercent <= 100) {
+                            // Modificamos la etiqueta visual del porcentaje
+                            if (auto label = this->findFirstChildByType<CCLabelBMFont>(this)) {
+                                label->setString(fmt::format("{}%", customPercent).c_str());
+                            }
+                            
+                            // Accedemos de forma segura al campo de porcentaje mediante punteros genéricos
+                            int* percentPtr = reinterpret_cast<int*>(reinterpret_cast<char*>(this) + 0x1F8);
+                            if (percentPtr) {
+                                *percentPtr = customPercent;
+                            }
+                        }
+                    } catch (...) {
+                        // Manejo de errores por si el usuario ingresa texto no numérico
+                    }
+                    
+                    // Limpiamos la caja para camuflar el comando
+                    inputField->setString("");
+                    return; // Importante: Salimos tras ejecutar nuestro comando para evitar duplicidades
+                }
+            }
         }
-
-        // Si no es un comando, enviamos el comentario con total normalidad
-        UploadCommentPopup::onPost(sender);
+        
+        // Llamamos al método original si no se ejecutó nuestro comando
+        FLAlertLayer::onPost(sender);
     }
 };
