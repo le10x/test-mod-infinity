@@ -8,10 +8,10 @@ else()
 endif()
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
-project(Infinity VERSION 1.0.0)
+project(TestMod VERSION 1.0.0)
 
 add_library(${PROJECT_NAME} SHARED
-    src/InfiniteText.cpp
+    src/main.cpp
     # Add any extra C++ source files here
 )
 
