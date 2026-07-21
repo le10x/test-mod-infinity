@@ -3,10 +3,10 @@
 
 using namespace geode::prelude;
 
-// Modificamos la clase directamente utilizando el namespace implícito de Geode
+// Al configurar CMakeLists, Geode ya reconocerá UploadCommentPopup automáticamente
 class $modify(MyPercentMod, UploadCommentPopup) {
     void onPost(CCObject* sender) {
-        // 1. Verificamos de manera segura que la caja de texto exista
+        // 1. Verificamos que el cuadro de texto exista de forma segura
         if (!m_commentTextInput) {
             UploadCommentPopup::onPost(sender);
             return;
@@ -14,28 +14,30 @@ class $modify(MyPercentMod, UploadCommentPopup) {
         
         std::string commentText = m_commentTextInput->getString();
 
-        // 2. Buscamos el comando "!percent " al inicio
+        // 2. Buscamos el comando "!percent " estrictamente al inicio
         if (commentText.rfind("!percent ", 0) == 0) {
             try {
-                // Extraemos el número correspondiente
+                // Extraemos el número correspondiente después del comando
                 int customPercent = std::stoi(commentText.substr(9));
 
                 if (customPercent >= 0 && customPercent <= 100) {
                     m_percent = customPercent;
                     
-                    // Modificamos el valor numérico visible si existe el texto
+                    // Modificamos visualmente el texto de la casilla vanilla
                     if (m_percentLabel) {
                         m_percentLabel->setString(fmt::format("{}%", customPercent).c_str());
                     }
                 }
-            } catch (...) {}
+            } catch (...) {
+                // Si hay error al procesar el número, se ignora de forma segura
+            }
 
-            // Limpiamos el cuadro para evitar que se publique el comando en el servidor
+            // Limpiamos el cuadro para evitar enviar el comando escrito al servidor
             m_commentTextInput->setString("");
             return; 
         }
 
-        // Si no se introduce el comando, procesamos la acción con normalidad
+        // Si no se usó el comando, el juego procesa el comentario normal
         UploadCommentPopup::onPost(sender);
     }
 };
