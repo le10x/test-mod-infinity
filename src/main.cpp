@@ -1,41 +1,38 @@
 #include <Geode/Geode.hpp>
-#include <Geode/modify/UploadCommentPopup.hpp>
 #include <string>
 
 using namespace geode::prelude;
 
-class $modify(MyPercentMod, UploadCommentPopup) {
+// Solo necesitas heredar de la clase usando la macro $modify
+class $modify(UploadCommentPopup) {
     void onPost(CCObject* sender) {
+        // 1. Obtenemos el texto del cuadro de comentarios
         std::string commentText = m_inputField->getString();
 
-        // 1. Buscamos el comando "!percent " en cualquier parte del texto
-        size_t commandPos = commentText.find("!percent ");
-        
-        if (commandPos != std::string::npos) {
+        // 2. Buscamos el comando "!percent " estrictamente al inicio (posición 0)
+        if (commentText.rfind("!percent ", 0) == 0) {
             try {
-                // Extraemos el número que va justo después del comando
-                std::string numStr = commentText.substr(commandPos + 9, 3); // Lee hasta 3 dígitos
-                int customPercent = std::stoi(numStr);
+                // Extraemos el número después de los 9 caracteres de "!percent "
+                int customPercent = std::stoi(commentText.substr(9));
 
                 if (customPercent >= 0 && customPercent <= 100) {
                     m_percent = customPercent;
-                    m_percentLabel->setString(fmt::format("{}%", customPercent).c_str());
                     
-                    // Aseguramos que la casilla esté activa internamente
-                    m_isPercentEnabled = true; 
+                    // Modificamos el texto visual en pantalla
+                    if (m_percentLabel) {
+                        m_percentLabel->setString(fmt::format("{}%", customPercent).c_str());
+                    }
                 }
+            } catch (...) {
+                // Si el usuario escribe mal el número, el mod ignora el comando de forma segura
+            }
 
-                // 2. BORRAMOS EL COMANDO del texto final
-                // Esto quita "!percent XX" del mensaje para que nadie lo descubra
-                commentText.erase(commandPos, 12); // Borra el comando y el número aproximado
-                
-                // Actualizamos el cuadro con el comentario limpio antes de enviar
-                m_inputField->setString(commentText.c_str());
-
-            } catch (...) {}
+            // Limpiamos el cuadro para que el comando no se publique en los servidores
+            m_inputField->setString("");
+            return; 
         }
 
-        // El juego envía el comentario limpio con el porcentaje ya modificado
+        // Si no empieza con el comando, el juego procesa el comentario de manera normal
         UploadCommentPopup::onPost(sender);
     }
 };
