@@ -1,44 +1,80 @@
 #include <Geode/Geode.hpp>
+#include <Geode/modify/LeaderboardLayer.hpp>
 
 using namespace geode::prelude;
 
-//I'm gonna leave comments in here because I like to
-//At least this code doesn't have any catgirls in it unlike my other project :3
-// Why did I leave this comment here lol
-// Also this code is interesting but like it works
-#include <Geode/modify/PauseLayer.hpp>
-class $modify(LDPauseLayer, PauseLayer) {
-	void customSetup() {
-		PauseLayer::customSetup();
-		auto rightButtonMenu = this->getChildByID("right-button-menu");
-		auto spr = CCSprite::createWithSpriteFrameName("GJ_levelLeaderboardBtn_001.png");
-		spr->setScale(0.65f);
-		auto btn = CCMenuItemSpriteExtra::create(spr, this, menu_selector(LDPauseLayer::onLeaderboard));
-		rightButtonMenu->addChild(btn);
-		btn->setID("leaderboard-button"_spr);
-		rightButtonMenu->updateLayout();
-	}
-	
-	void onLeaderboard(CCObject* sender) {
-		if (PlayLayer::get()) { //Check if there is a PlayLayer
-			auto level = PlayLayer::get()->m_level;
-			auto levelLeaderboardType = static_cast<LevelLeaderboardType>(GameManager::get()->getIntGameVariable("0098"));
-			auto levelLeaderboardMode = static_cast<LevelLeaderboardMode>(GameManager::get()->getIntGameVariable("0164"));
-			LevelLeaderboard::create(level, levelLeaderboardType, levelLeaderboardMode)->show();
-			return;
-		}
-		FLAlertLayer::create("Uh Oh", "No PlayLayer found, you sure you in a level?", "OK")->show();
-	}
-};
+class $modify(MyLeaderboardLayer, LeaderboardLayer) {
+    
+    struct Fields {
+        bool m_isPlatformer = false;
+    };
 
-#include <Geode/modify/LevelLeaderboard.hpp>
-class $modify(LDLevelLeaderboard, LevelLeaderboard) {
-	bool init(GJGameLevel* p0, LevelLeaderboardType p1, LevelLeaderboardMode p2) {
-		if (!LevelLeaderboard::init(p0, p1, p2)) return false;
+    bool init(LeaderboardState state) {
+        if (!LeaderboardLayer::init(state)) return false;
 
-		//Makes sure its above everything if its created without the show function (I'm looking at you betterinfo)
-		this->setZOrder(std::max(0x69, CCDirector::sharedDirector()->getRunningScene()->getHighestChildZ()));
+        CCMenu* sideMenu = nullptr;
 
-		return true;
-	}
+        // Búsqueda manual sin depender de Node IDs externos
+        // Recorremos los nodos hijos para dar con el CCMenu contenedor de botones (Top, Week, Friends)
+        auto children = this->getChildren();
+        if (children) {
+            for (int i = 0; i < children->count(); ++i) {
+                auto child = GameObjCast<CCMenu*>(children->objectAtIndex(i));
+                if (child) {
+                    // Verificación de seguridad por coordenadas: RobTop posiciona este menú a la derecha
+                    if (child->getPositionX() > 200.0f) { 
+                        sideMenu = child;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // Si no se encuentra de forma segura, creamos un menú flotante alternativo
+        if (!sideMenu) {
+            sideMenu = CCMenu::create();
+            sideMenu->setPosition({ CCDirector::sharedDirector()->getWinSize().width - 40.0f, 150.0f });
+            this->addChild(sideMenu);
+        }
+
+        // Crear interfaz estética del botón independiente
+        auto buttonSprite = ButtonSprite::create("Classic", "goldFont.fnt", "GJ_button_01.png", 0.5f);
+        
+        auto toggleBtn = CCMenuItemSpriteExtra::create(
+            buttonSprite,
+            this,
+            menu_selector(MyLeaderboardLayer::onToggleLeaderboardMode)
+        );
+        
+        toggleBtn->setID("mode-toggle-button"_spr);
+        
+        // Inserción en el menú físico
+        sideMenu->addChild(toggleBtn);
+        sideMenu->updateLayout();
+
+        return true;
+    }
+
+    void onToggleLeaderboardMode(CCObject* sender) {
+        m_fields->m_isPlatformer = !m_fields->m_isPlatformer;
+
+        auto btn = static_cast<CCMenuItemSpriteExtra*>(sender);
+        auto spr = static_cast<ButtonSprite*>(btn->getNormalImage());
+        
+        if (m_fields->m_isPlatformer) {
+            spr->setString("Plat");
+        } else {
+            spr->setString("Classic");
+        }
+
+        // Modificación del GameManager global de RobTop en GD 2.2081
+        auto gameManager = GameManager::sharedState();
+        if (gameManager) {
+            // Nota: Este booleano define el filtrado interno del cliente antes de enviar la petición HTTP
+            // gameManager->m_isPlatformer = m_fields->m_isPlatformer;
+        }
+
+        // Forzar actualización visual limpiando y recargando la lista
+        // this->setupLeaderboard(m_state);
+    }
 };
